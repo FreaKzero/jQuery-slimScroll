@@ -2,7 +2,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 1.3.8
+ * Version: 1.3.3
  *
  */
 (function($) {
@@ -75,6 +75,11 @@
         // sets border radius
         borderRadius: '7px',
 
+         // sets animation status on a given scroll
+        animate: true,
+
+        zIndex: 90,
+
         // sets border radius of the rail
         railBorderRadius : '7px'
       };
@@ -100,8 +105,8 @@
             var offset = me.scrollTop();
 
             // find bar and rail
-            bar = me.siblings('.' + o.barClass);
-            rail = me.siblings('.' + o.railClass);
+            bar = me.parent().find('.' + o.barClass);
+            rail = me.parent().find('.' + o.railClass);
 
             getBarHeight();
 
@@ -115,10 +120,6 @@
                 var height = me.parent().parent().height();
                 me.parent().css('height', height);
                 me.css('height', height);
-              } else if ('height' in options) {
-                var h = options.height;
-                me.parent().css('height', h);
-                me.css('height', h);
               }
 
               if ('scrollTo' in options)
@@ -150,7 +151,7 @@
         {
             if ('destroy' in options)
             {
-            	return;
+              return;
             }
         }
 
@@ -186,7 +187,7 @@
             'border-radius': o.railBorderRadius,
             background: o.railColor,
             opacity: o.railOpacity,
-            zIndex: 90
+            zIndex: o.zIndex
           });
 
         // create scrollbar
@@ -203,7 +204,7 @@
             BorderRadius: o.borderRadius,
             MozBorderRadius: o.borderRadius,
             WebkitBorderRadius: o.borderRadius,
-            zIndex: 99
+            zIndex: o.zIndex + 9
           });
 
         // set position
@@ -281,8 +282,8 @@
           // prevent scrolling the page if necessary
           if(!releaseScroll)
           {
-  		      e.originalEvent.preventDefault();
-		      }
+            e.originalEvent.preventDefault();
+          }
           if (e.originalEvent.touches.length)
           {
             // see how far user swiped
@@ -313,7 +314,7 @@
         }
 
         // attach scroll events
-        attachWheel(this);
+        attachWheel();
 
         function _onWheel(e)
         {
@@ -373,8 +374,13 @@
             bar.css({ top: offsetTop + 'px' });
           }
 
-          // scroll content
-          me.scrollTop(delta);
+        if (o.animate){
+              // scroll content smoothly using jquery animation
+              me.stop(true, true).animate({ scrollTop: delta }, 200, 'linear');
+        }else{
+              // scroll content
+              me.scrollTop(delta);
+        }
 
           // fire scrolling event
           me.trigger('slimscrolling', ~~delta);
@@ -386,12 +392,12 @@
           hideBar();
         }
 
-        function attachWheel(target)
+        function attachWheel()
         {
           if (window.addEventListener)
           {
-            target.addEventListener('DOMMouseScroll', _onWheel, false );
-            target.addEventListener('mousewheel', _onWheel, false );
+            this.addEventListener('DOMMouseScroll', _onWheel, false );
+            this.addEventListener('mousewheel', _onWheel, false );
           }
           else
           {
